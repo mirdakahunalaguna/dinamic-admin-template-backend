@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-
+use App\Models\UserCategory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -21,7 +21,7 @@ class User extends Authenticatable
         'email',
         'name',
         'password',
-        'role'
+        'user_category_id'
     ];
 
     /**
@@ -42,4 +42,9 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+       // Relasi dengan model Pegawai
+    public function category()
+    {
+        return $this->belongsTo(UserCategory::class);
+    }
 }
