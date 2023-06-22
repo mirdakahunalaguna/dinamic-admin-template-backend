@@ -11,8 +11,9 @@ class Pegawai extends Model
 
     protected $guarded = ['id']; // Atur kolom yang dapat diisi dalam model
 
-   public function user()
+    public function user()
     {
-        return $this->hasOne(User::class,  'id', 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
+
 }

@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User;
+use App\Models\UserCategory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Role extends Model
 {
@@ -18,8 +20,9 @@ class Role extends Model
         return $this->belongsTo(User::class);
     }
           // Relasi dengan model Pegawai
-    public function category()
-    {
-        return $this->belongsTo(UserCategory::class);
-    }
+    public function userCategory()
+{
+    return $this->belongsTo(UserCategory::class, 'user_category_id', 'id');
+}
+
 }

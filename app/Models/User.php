@@ -42,9 +42,15 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    public function pegawai()
+{
+    return $this->hasOne(Pegawai::class, 'user_id', 'id');
+}
+
        // Relasi dengan model Pegawai
-    public function category()
+    public function userCategory()
     {
-        return $this->belongsTo(UserCategory::class);
+        return $this->belongsTo(UserCategory::class, 'user_category_id', 'id');
+
     }
 }

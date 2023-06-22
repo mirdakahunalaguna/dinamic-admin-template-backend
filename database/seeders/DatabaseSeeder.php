@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Pegawai;
+use App\Models\UserCategory;
+use App\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,8 +18,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // Panggil seeder yang ingin Anda jalankan di sini
-        // $this->call(UsersSeeder::class);
+        $this->call(UserCategorySeeder::class);
+        $this->call(RoleSeeder::class);
+        $this->call(UserSeeder::class);
         $this->call(PegawaisSeeder::class);
 
     }

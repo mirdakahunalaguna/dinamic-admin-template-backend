@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\UserCategory;
 use Faker\Factory as Faker;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -18,26 +19,21 @@ class UserFactory extends Factory
 
     public function definition()
     {
-        //digunakan untuk membuat instance dari Faker dengan pengaturan lokal bahasa Indonesia (ID
         $faker = Faker::create('id_ID');
-        $validRoles = ['admin', 'pengguna', 'pengunjung'];
+        $userCategoryIds = UserCategory::pluck('id')->toArray();
+        static $counter = 0;
+        $category = $userCategoryIds[$counter];
+        $counter++;
         return [
-            'name' => $faker->name(),
-            'email' => preg_replace('/@example\..*/', '@google.com', $faker->unique()->safeEmail),
+            'user_name' => $faker->unique()->userName,
+            'email' => $faker->unique()->safeEmail,
             'email_verified_at' => now(),
             'password' => bcrypt('secret1234'),
             'remember_token' => Str::random(10),
-            'role' => $this->getNextRole($validRoles),
+            'user_category_id' => $category,
         ];
     }
-    // Mendapatkan peran berikutnya berdasarkan urutan array validRoles
-    protected function getNextRole($validRoles)
-    {
-        static $index = 0;
-        $role = $validRoles[$index];
-        $index = ($index + 1) % count($validRoles);
-        return $role;
-    }
+
     /**
      * Indicate that the model's email address should be unverified.
      *

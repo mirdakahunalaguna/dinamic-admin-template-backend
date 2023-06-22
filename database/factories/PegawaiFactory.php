@@ -17,13 +17,15 @@ class PegawaiFactory extends Factory
         $faker = Faker::create('id_ID');
 
         // Ambil data dari tabel users atau buat user baru jika belum ada
-        $user = User::factory()->create();
-
+        $userIds = User::pluck('id')->toArray();
+        static $counter = 0;
+        $user_id = $userIds[$counter];
+        $counter++;
         return [
-            'user_id' => $user->id,
+            'user_id' => $user_id,
             'nik' => $faker->numerify('###############'), // 16 angka
             'nip' => $faker->numerify('########'), // 8 angka
-            'nama' => $user->name,
+            'nama' => $faker->name,
             'alamat' => $faker->address,
             'phone' => $faker->phoneNumber,
         ];

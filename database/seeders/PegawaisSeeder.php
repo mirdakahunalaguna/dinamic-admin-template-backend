@@ -15,6 +15,6 @@ class PegawaisSeeder extends Seeder
     public function run()
     {
        // Menggunakan factories untuk menghasilkan data dummy pada tabel pegawais
-        Pegawai::factory()->count(10)->create();
+        Pegawai::factory()->count(12)->create();
     }
 }
