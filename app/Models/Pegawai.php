@@ -15,5 +15,8 @@ class Pegawai extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
-
+        public function ijinKehadirans()
+    {
+        return $this->hasMany(IjinKehadiran::class, 'nip');
+    }
 }
