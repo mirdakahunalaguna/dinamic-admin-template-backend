@@ -16,6 +16,6 @@ class AbsensiSeeder extends Seeder
    public function run()
     {
        // Menggunakan factories untuk menghasilkan data dummy pada tabel pegawais
-        Absensi::factory()->count(500)->create();
+        Absensi::factory()->count(1000)->create();
     }
 }

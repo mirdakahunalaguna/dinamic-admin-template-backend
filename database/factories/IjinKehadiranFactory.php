@@ -17,7 +17,8 @@ class IjinKehadiranFactory extends Factory
             'jenis_ijin' => $this->faker->randomElement(['ijin masuk', 'ijin pulang', 'ijin keluar']),
             'jam_masuk' => $this->faker->time(),
             'jam_keluar' => $this->faker->time(),
-            'status' => $this->faker->boolean(),
+            'keterangan' => 'bos kek tai',
+            'status' => $this->faker->randomElement(['unresponded', 'accepted', 'rejected']),
         ];
     }
 }

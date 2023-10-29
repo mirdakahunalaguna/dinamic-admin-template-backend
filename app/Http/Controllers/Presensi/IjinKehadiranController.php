@@ -13,13 +13,13 @@ class IjinKehadiranController extends Controller
 {
     public function index(Request $request)
 {
-    $columns = ['nip', 'tanggal', 'jenis_ijin', 'keterangan'];
+    $columns = ['id','nip', 'tanggal', 'jenis_ijin', 'keterangan'];
     $column = $request->input('column');
     $length = $request->input('length');
     $dir = $request->input('dir');
     $searchValue = $request->input('search');
 
-    $query = IjinKehadiran::select('id', 'nip', 'tanggal', 'jenis_ijin', 'keterangan')->with('pegawai:nip,nama');
+    $query = IjinKehadiran::select('id', 'nip', 'tanggal', 'jenis_ijin', 'keterangan','status')->with('pegawai:nip,nama');
 
     if ($searchValue) {
         $query->where(function($query) use ($searchValue) {
@@ -47,23 +47,24 @@ class IjinKehadiranController extends Controller
 
 
    public function store(Request $request)
-{
-    $request->validate([
-        'nip' => 'required',
-        'tanggal' => 'required|date',
-        'jenis_ijin' => 'required',
-        'jam_masuk' => 'nullable|date_format:H:i:s',
-        'jam_keluar' => 'nullable|date_format:H:i:s',
-        'jam_kembali' => 'nullable|date_format:H:i:s',
-        'keterangan' => 'required',
-    ],
-    [
-      'required'    =>  'field harus terisi !',
-      'unique'      =>  'data sudah terdaftar',
-    ]);
+    {
+        $request->validate([
+            'nip' => 'required',
+            'tanggal' => 'required|date',
+            'jenis_ijin' => 'required',
+            'jam_masuk' => 'nullable|date_format:H:i:s',
+            'jam_keluar' => 'nullable|date_format:H:i:s',
+            'jam_kembali' => 'nullable|date_format:H:i:s',
+            'keterangan' => 'required',
 
-    try {
-        $ijinKehadiran = IjinKehadiran::create([
+        ],
+        [
+        'required'    =>  'field harus terisi !',
+        'unique'      =>  'data sudah terdaftar',
+        ]);
+
+        try {
+         $ijinKehadiran = IjinKehadiran::create([
             'nip' => $request->nip,
             'tanggal' => $request->tanggal,
             'jenis_ijin' => $request->jenis_ijin,
@@ -71,20 +72,21 @@ class IjinKehadiranController extends Controller
             'jam_keluar' => $request->jam_keluar,
             'jam_kembali' => $request->jam_kembali,
             'keterangan' => $request->keterangan,
-            'status' => $request->status ?? false,
+            'status' => $request->status ?? 'unresponded', // Set 'unresponded' as the default value if 'status' is not provided
         ]);
 
-        return response()->json([
-            'message' => 'Ijin kehadiran berhasil disimpan.',
-            'data' => $ijinKehadiran,
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Terjadi kesalahan saat menyimpan ijin kehadiran.',
-            'error' => $e->getMessage(),
-        ], 422);
+
+            return response()->json([
+                'message' => 'Ijin kehadiran berhasil disimpan.',
+                'data' => $ijinKehadiran,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat menyimpan ijin kehadiran.',
+                'error' => $e->getMessage(),
+            ], 422);
+        }
     }
-}
 
 
     public function show($id)

@@ -3,10 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Pegawai;
-use App\Models\UserCategory;
-use App\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,10 +14,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call(UserCategorySeeder::class);
-        $this->call(RoleSeeder::class);
-        $this->call(UserSeeder::class);
-        $this->call(PegawaisSeeder::class);
+        // $this->call(UserSeeder::class);
+        $this->call(AbsensiSeeder::class);
+        $this->call(IjinKehadiranSeeder::class);
+        $this->call(MenuSeeder::class);
+        $this->call(SubmenuSeeder::class);
 
     }
 }

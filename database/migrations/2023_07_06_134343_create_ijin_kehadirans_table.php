@@ -23,7 +23,7 @@ class CreateIjinKehadiransTable extends Migration
             $table->time('jam_keluar')->nullable();
             $table->time('jam_kembali')->nullable();
             $table->string('keterangan')->nullable();
-            $table->boolean('status')->default(false);
+            $table->enum('status', ['unresponded', 'accepted', 'rejected']);
             // Tambahkan kolom-kolom lainnya sesuai kebutuhan
             $table->timestamps();
         });

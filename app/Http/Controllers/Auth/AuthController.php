@@ -15,24 +15,22 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email'     => 'required|email',
-            'password'  => 'required|min:8',
+            'email' => 'required|email',
+            'password' => 'required|min:8',
         ]);
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 202);
-        }
-        else if (Auth::attempt(['email'     => $request->email,
-                                'password'  => $request->password]))
-        {
+        } else if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $user = Auth::user();
-            $response = [];
-            $response=$user->createToken('mirdApp')->plainTextToken;
-            return response()->json(['data'=>$user,
-                                     'token'=>$response,
-                                     'status'=>200]);
+            $token = $user->createToken('mirdApp')->plainTextToken; // Menggunakan metode createToken dari objek pengguna
+
+            return response()->json([
+                'data' => $user,
+                'token' => $token,
+                'status' => 200,
+            ]);
         } else {
-            $response['status'] = false;
-            $response['message'] = 'Unauthorized';
             return response()->json(['error' => 'Wrong username or password'], 203);
         }
     }
@@ -68,23 +66,6 @@ class AuthController extends Controller
         return response()->json($response, 200);
     }
 
-    public function profile()
-    {
-        $user = Auth::user();
-        if($user){
-        $user = $user->makeHidden(['email_verified_at', 'password']);
-
-        $response['status'] = true;
-        $response['message'] = 'User login profil';
-        $response['data'] = $user;
-
-        return response()->json($response, 200);
-        }else{
-            return response()->json(['error' => 'Logout failled.'],203);
-        }
-
-    }
-
     public function logout(Request $request)
     {   $user = Auth::user();
         if($user){
@@ -97,13 +78,31 @@ class AuthController extends Controller
         }
     }
 
-    public function me(Request $request){
-        $user = Auth::user();
-        if($user){
-            return response()->json($user, 200);
-        }else{
-            return response()->json(['error' => 'Unauthenticated']);
-        }
+ public function profile(Request $request) {
+    // Memeriksa apakah pengguna sudah masuk
+    $user = $request->user();
+
+    if (!$user) {
+        return response()->json(['error' => 'Unauthenticated']);
     }
+
+    // Mengambil data pengguna yang sedang masuk beserta data Pegawai (jika ada)
+    $userWithPegawai = User::with('pegawai')->find($user->id);
+
+    if ($userWithPegawai->pegawai) {
+        // Pengguna memiliki relasi dengan Pegawai, buat respons sesuai kebutuhan
+        return response()->json([
+            'user_name' => $userWithPegawai->user_name,
+            'email' => $userWithPegawai->email,
+            'nama' => $userWithPegawai->pegawai->nama,
+            'nip' => $userWithPegawai->pegawai->nip,
+        ], 200);
+    }
+
+    // Pengguna tidak memiliki relasi dengan Pegawai
+    return response()->json(['error' => 'Pengguna bukan Pegawai']);
+}
+
+
 
 }

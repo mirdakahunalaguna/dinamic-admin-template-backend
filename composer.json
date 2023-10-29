@@ -6,12 +6,14 @@
     "license": "MIT",
     "require": {
         "php": "^7.3|^8.0",
-        "fruitcake/laravel-cors": "^2.0",
+        "barryvdh/laravel-cors": "^2.2",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.15",
         "laravel/tinker": "^2.5",
-        "ramsey/uuid": "^4.2"
+        "ramsey/uuid": "^4.2",
+        "spatie/laravel-permission": "^5.11",
+        "symfony/mailer": "^5.4"
     },
     "require-dev": {
         "facade/ignition": "^2.5",
