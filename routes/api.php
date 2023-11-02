@@ -95,6 +95,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         Route::prefix('role-permission')->group(function () {
             Route::get('user-pegawai', [ UserController::class, 'getUserpegawai']);
+            Route::get('user-role-pegawai', [ UserController::class, 'getUserRolePegawai']);
+            Route::get('user-roles', [ UserController::class, 'getAllUsersWithRoles']);
             Route::get('roles', [RolePermissionController::class, 'getAllRole']);
             Route::get('permissions', [RolePermissionController::class, 'getAllPermission']);
             Route::post('set-role-user', [RolePermissionController::class, 'setRoleUser']);
