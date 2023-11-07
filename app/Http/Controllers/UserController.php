@@ -27,60 +27,6 @@ class UserController extends Controller
 
         return $this->sendResponse($data, 'Successfully', 200);
     }
-    public function getUserpegawai(Request $request)
-    {
-        $query = User::select('id', 'email')
-        ->with(['pegawai' => function ($query) {
-            $query->select('user_id', 'nama', 'nip');
-        }])
-        ->with(['roles' => function ($query) {
-            $query->select('model_id', 'name'); // Menggunakan first() untuk mendapatkan satu peran
-        }]);
-
-        if ($request->has('search')) {
-            $query->whereHas('pegawai', function ($subQuery) use ($request) {
-                $subQuery->where('nama', 'like', '%' . $request->input('search') . '%');
-            });
-        }
-
-        $data = $query->get();
-
-        return response()->json(['message' => 'Data berhasil ditemukan', 'data' => $data]);
-    }
-
-    public function getUserRolePegawai(Request $request)
-    {
-        // Membaca parameter pengurutan dari permintaan HTTP
-        $sortDirection = $request->input('sort', 'asc');
-
-        // Validasi nilai parameter untuk memastikan hanya 'asc' atau 'desc' yang diterima
-        if (!in_array($sortDirection, ['asc', 'desc'])) {
-            return response()->json(['message' => 'Invalid sorting direction'], 400);
-        }
-
-         // Membaca parameter pencarian dari permintaan HTTP
-        $searchKeyword = $request->input('search');
-        $length = $request->input('length'); // Jumlah item per halaman
-        $query = User::select('id', 'email')
-        ->with('pegawai')//kolom terpilih dari tabel pegawai didefinikan di model user
-        ->with(['roles' => function ($query) {
-            $query->select('model_id', 'name'); }])// Menggunakan first() untuk mendapatkan satu peran
-        ->orderBy('email',$sortDirection)
-        ->paginate($length);
-
-        // Jika ada kata kunci pencarian, tambahkan kondisi pencarian ke kueri
-        if ($searchKeyword) {
-            $query->where('email', 'LIKE', "%$searchKeyword%")
-                ->orWhereHas('pegawai', function ($subquery) use ($searchKeyword) {
-                    $subquery->where('nama', 'LIKE', "%$searchKeyword%");
-                });
-        }
-        // Ambil nilai draw dari permintaan
-        $draw = $request->input('draw');
-
-         // Sertakan nilai draw dalam respons JSON Anda
-        return response()->json(['draw' => $draw, 'message' => 'Data menu berhasil ditemukan', 'data' => $query ]);
-    }
     /**
      * Store a newly created resource in storage.
      */
@@ -145,11 +91,57 @@ class UserController extends Controller
         return $this->sendResponse('', 'Berhasil dihapus',200);
     }
 
-    public function getAllUsersWithRoles()
+    public function getUserpegawai(Request $request)
     {
-        // Dapatkan seluruh pengguna berserta peran mereka
-        $query = User::with('roles')->get();
+        $query = User::select('id', 'email')
+        ->with(['pegawai' => function ($query) {
+            $query->select('user_id', 'nama', 'nip');
+        }])
+        ->with(['roles' => function ($query) {
+            $query->select('model_id', 'name'); // Menggunakan first() untuk mendapatkan satu peran
+        }]);
 
-        return response()->json(['message' => 'Data roles berhasil ditemukan', 'data' => $query]);
+        if ($request->has('search')) {
+            $query->whereHas('pegawai', function ($subQuery) use ($request) {
+                $subQuery->where('nama', 'like', '%' . $request->input('search') . '%');
+            });
+        }
+
+        $data = $query->get();
+
+        return response()->json(['message' => 'Data berhasil ditemukan', 'data' => $data]);
+    }
+
+    public function getUserRolePegawai(Request $request)
+    {
+        // Membaca parameter pengurutan dari permintaan HTTP
+        $sortDirection = $request->input('sort', 'asc');
+
+        // Validasi nilai parameter untuk memastikan hanya 'asc' atau 'desc' yang diterima
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
+            return response()->json(['message' => 'Invalid sorting direction'], 400);
+        }
+
+        $query = User::select('id', 'email')
+        ->with('pegawai')//kolom terpilih dari tabel pegawai didefinikan di model user
+        ->with(['roles' => function ($query) {
+            $query->select('model_id', 'name'); }])// Menggunakan first() untuk mendapatkan satu peran
+        ->orderBy('email',$sortDirection);
+        // Membaca parameter pencarian dari permintaan HTTP
+        $searchKeyword = $request->input('search');
+        // Jika ada kata kunci pencarian, tambahkan kondisi pencarian ke kueri
+        if ($searchKeyword) {
+            $query->where('email', 'LIKE', "%$searchKeyword%")
+                ->orWhereHas('pegawai', function ($subquery) use ($searchKeyword) {
+                    $subquery->where('nama', 'LIKE', "%$searchKeyword%");
+                });
+        }
+        $length = $request->input('length'); // Jumlah item per halaman
+
+        $userRole = $query->paginate($length);
+        // Ambil nilai draw dari permintaan
+        $draw = $request->input('draw');
+         // Sertakan nilai draw dalam respons JSON Anda
+        return response()->json(['draw' => $draw, 'message' => 'Data menu berhasil ditemukan', 'data' =>  $userRole]);
     }
 }

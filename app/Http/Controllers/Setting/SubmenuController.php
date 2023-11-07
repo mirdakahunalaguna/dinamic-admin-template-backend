@@ -75,42 +75,42 @@ class SubmenuController extends Controller
     }
 
     public function show(Request $request)
-{
-    // Membaca parameter pengurutan dari permintaan HTTP
-    $sortDirection = $request->input('sort', 'desc');
+    {
+        // Membaca parameter pengurutan dari permintaan HTTP
+        $sortDirection = $request->input('sort', 'desc');
 
-    // Validasi nilai parameter untuk memastikan hanya 'asc' atau 'desc' yang diterima
-    if (!in_array($sortDirection, ['asc', 'desc'])) {
-        return response()->json(['message' => 'Invalid sorting direction'], 400);
+        // Validasi nilai parameter untuk memastikan hanya 'asc' atau 'desc' yang diterima
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
+            return response()->json(['message' => 'Invalid sorting direction'], 400);
+        }
+
+        // Membaca parameter pencarian dari permintaan HTTP
+        $searchKeyword = $request->input('search');
+
+        // Buat query builder untuk model Submenu
+        $query = Submenu::with('menu')->orderBy('created_at', $sortDirection);
+
+        // Jika ada kata kunci pencarian, tambahkan kondisi pencarian ke kueri
+        if ($searchKeyword) {
+            $query->where('title', 'LIKE', "%$searchKeyword%");
+        }
+
+        // Validasi nilai parameter 'length' (jumlah item per halaman)
+        $length = $request->input('length');
+
+        if (!is_numeric($length) || $length <= 0) {
+            return response()->json(['message' => 'Invalid length parameter'], 400);
+        }
+
+        // Menggunakan paginasi dengan jumlah item per halaman yang sesuai
+        $submenus = $query->paginate($length);
+
+        // Ambil nilai draw dari permintaan
+        $draw = $request->input('draw');
+
+        // Sertakan nilai draw dalam respons JSON Anda
+        return response()->json(['draw' => $draw, 'message' => 'Data menu berhasil ditemukan', 'data' => $submenus]);
     }
-
-    // Membaca parameter pencarian dari permintaan HTTP
-    $searchKeyword = $request->input('search');
-
-    // Buat query builder untuk model Submenu
-    $query = Submenu::with('menu')->orderBy('created_at', $sortDirection);
-
-    // Jika ada kata kunci pencarian, tambahkan kondisi pencarian ke kueri
-    if ($searchKeyword) {
-        $query->where('title', 'LIKE', "%$searchKeyword%");
-    }
-
-    // Validasi nilai parameter 'length' (jumlah item per halaman)
-    $length = $request->input('length');
-
-    if (!is_numeric($length) || $length <= 0) {
-        return response()->json(['message' => 'Invalid length parameter'], 400);
-    }
-
-    // Menggunakan paginasi dengan jumlah item per halaman yang sesuai
-    $submenus = $query->paginate($length);
-
-    // Ambil nilai draw dari permintaan
-    $draw = $request->input('draw');
-
-    // Sertakan nilai draw dalam respons JSON Anda
-    return response()->json(['draw' => $draw, 'message' => 'Data menu berhasil ditemukan', 'data' => $submenus]);
-}
 
     /**
      * Show the form for editing the specified resource.
@@ -122,7 +122,7 @@ class SubmenuController extends Controller
     {
         //
     }
-public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         try {
             // Cari objek Submenu berdasarkan ID
@@ -159,19 +159,5 @@ public function update(Request $request, $id)
 
             return response()->json(['message' => 'Gagal memperbarui data menu', 'error' => $e->getMessage()], 500);
         }
-    }
-
-    public function destroy($id)
-    {
-        // Cari dan hapus entri submenu berdasarkan ID
-        $submenu = Submenu::find($id);
-
-        if (!$submenu) {
-            return response()->json(['message' => 'Data submenu tidak ditemukan'], 404);
-        }
-
-        $submenu->delete();
-
-        return response()->json(['message' => 'Data submenu berhasil dihapus']);
     }
 }

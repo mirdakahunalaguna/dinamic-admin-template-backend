@@ -72,4 +72,33 @@ class RolePermissionController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Pengguna tidak ditemukan'], 404);
         }
     }
+    // HAPUS USER ROLE
+        public function destroyUserRole($id)
+    {
+        // Cari dan hapus entri submenu berdasarkan ID
+        $submenu = Submenu::find($id);
+
+        if (!$submenu) {
+            return response()->json(['message' => 'Data submenu tidak ditemukan'], 404);
+        }
+
+        $submenu->delete();
+
+        return response()->json(['message' => 'Data submenu berhasil dihapus']);
+    }
+
+    public function destroy($id)
+    {
+        // Cari dan hapus entri submenu berdasarkan ID
+        $query = query::find($id);
+
+        if (!$query) {
+            return response()->json(['message' => 'Data user role tidak ditemukan'], 404);
+        }
+
+        $query->delete();
+
+        return response()->json(['message' => 'Data user role berhasil dihapus']);
+    }
+
 }
