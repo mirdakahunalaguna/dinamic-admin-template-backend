@@ -112,16 +112,6 @@ class SubmenuController extends Controller
         return response()->json(['draw' => $draw, 'message' => 'Data menu berhasil ditemukan', 'data' => $submenus]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
     public function update(Request $request, $id)
     {
         try {
@@ -159,5 +149,19 @@ class SubmenuController extends Controller
 
             return response()->json(['message' => 'Gagal memperbarui data menu', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    public function destroy($id)
+    {
+        // Cari dan hapus entri menu berdasarkan ID
+        $submenu = Submenu::find($id);
+
+        if (!$submenu) {
+            return response()->json(['message' => 'Data menu tidak ditemukan'], 404);
+        }
+
+        $submenu->delete();
+
+        return response()->json(['message' => 'Data menu berhasil dihapus']);
     }
 }

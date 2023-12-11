@@ -22,7 +22,7 @@ class SubmenuSeeder extends Seeder
         ]);
 
         Submenu::create([
-            'menu_id' => 2, // Menu ID yang terkait
+            'menu_id' => 3, // Menu ID yang terkait
             'title' => 'Role and Permission',
             'to' => 'SettingRole',
         ]);

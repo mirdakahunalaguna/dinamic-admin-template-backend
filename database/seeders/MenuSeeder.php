@@ -17,15 +17,15 @@ class MenuSeeder extends Seeder
         ]);
 
         Menu::create([
-            'title' => 'Setting',
+            'title' => 'Setting Sidebar',
             'to' => 'PageNotFound',
             'icon' =>'icon-park-solid:setting-two'
         ]);
 
         Menu::create([
-            'title' => 'Human Resourches',
+            'title' => 'Setting Role',
             'to' => 'PageNotFound',
-            'icon' =>'healthicons:human-resoruces-outline'
+            'icon' =>'carbon:user-role'
         ]);
 
         // Tambahkan data lain sesuai kebutuhan

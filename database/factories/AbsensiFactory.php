@@ -25,6 +25,12 @@ class AbsensiFactory extends Factory
     {
         $faker = Faker::create('id_ID');
         $userIds = User::pluck('id')->toArray();
+
+        if (empty($userIds)) {
+            // Handle the case where $userIds is empty, for example by seeding the database with users
+            return [];
+        }
+
         static $counter = 0;
         $user_id = $userIds[$counter % count($userIds)];
         $counter++;

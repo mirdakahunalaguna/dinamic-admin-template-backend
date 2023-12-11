@@ -14,14 +14,10 @@ class PermissionsTableSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-            'menu-view',
-            'menu-create',
-            'menu-edit',
-            'menu-delete',
-            'hrd-view',
-            'hrd-create',
-            'hrd-edit',
-            'hrd-delete',
+            'view',
+            'create',
+            'edit',
+            'delete',
         ];
 
         foreach ($permissions as $permission) {

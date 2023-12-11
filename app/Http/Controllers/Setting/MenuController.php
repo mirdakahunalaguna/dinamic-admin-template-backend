@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB; // Import facade DB
 use App\Models\Setting\MenuRole;
 use App\Models\Setting\Menu;
-
+use App\Models\Setting\Role;
 class MenuController extends Controller
 {
     public function index(Request $request)
@@ -69,6 +69,7 @@ class MenuController extends Controller
                 'title' => 'required|string|max:255',
                 'to' => 'nullable|string|max:255',
                 'icon' => 'nullable|string|max:255',
+                'roles' => 'nullable|array',
             ]);
 
             // Memulai transaksi database
@@ -80,6 +81,14 @@ class MenuController extends Controller
                 'to' => $request->input('to') ?? 'PageNotFound',
                 'icon' => $request->input('icon'),
             ]);
+
+            // Assign a default role if no roles are provided in the request
+            $defaultRoleId = 1;
+            $roleIds = $request->input('roles', [$defaultRoleId]);
+
+            // Attach roles to the menu
+            $roles = Role::find($roleIds);
+            $menu->syncRoles($roles);
 
             // Commit transaksi jika semuanya berhasil
             DB::commit();
@@ -222,6 +231,18 @@ class MenuController extends Controller
 
         return response()->json(['message' => 'Data ditemukan', 'data' => $roleNames]);
     }
+    //METHOD UNTUK MENGAMBIL ROLE YANG DIMILIKI MENU
+    public function getRoleMenus(Request $request)
+    {
+        // Melakukan query untuk mengambil judul menu berdasarkan role_id
+        $menuNames = DB::table('menu_role')
+            ->select('menus.title','menus.id')
+            ->join('menus', 'menu_role.menu_id', '=', 'menus.id')
+            ->where('role_id', $request->role_id)
+            ->get();
+
+        return response()->json(['message' => 'Data ditemukan', 'data' => $menuNames]);
+    }
     //FUNGSI INI UNTUK MENGATUR ROLE DARI MENU YANG DIPILIH
     public function setMenuRoles(Request $request)
     {
@@ -258,6 +279,54 @@ class MenuController extends Controller
             // Rollback transaksi jika terjadi kesalahan
             DB::rollback();
             return response()->json(['message' => 'Gagal memperbarui peran menu', 'error' => $e->getMessage()], 500);
+        }
+    }
+public function setRoleMenus(Request $request)
+    {
+        // VALIDASI
+        $this->validate($request, [
+            'role_id' => 'required|exists:roles,id',
+            'menus' => 'array', // Pastikan menus adalah array
+        ]);
+
+        // Ambil role berdasarkan ID
+        $role = Role::find($request->role_id);
+
+        if (!$role) {
+            return response()->json(['message' => 'Role tidak ditemukan'], 404);
+        }
+
+        // Ambil daftar menu yang saat ini terhubung dengan role ini
+        $existingMenus = $role->menus()->pluck('id')->toArray();
+
+        // Bandingkan dengan daftar menu yang dipilih saat ini
+        $selectedMenus = $request->menus;
+
+        // Menu yang perlu ditambahkan
+        $menusToAdd = array_diff($selectedMenus, $existingMenus);
+
+        // Menu yang perlu dihapus
+        $menusToRemove = array_diff($existingMenus, $selectedMenus);
+
+        // Mulai transaksi database
+        DB::beginTransaction();
+
+        try {
+            // Tambahkan menu yang perlu ditambahkan
+            $role->menus()->attach($menusToAdd);
+
+            // Hapus menu yang perlu dihapus
+            $role->menus()->detach($menusToRemove);
+
+            // Commit transaksi jika semuanya berhasil
+            DB::commit();
+
+            return response()->json(['message' => 'Role menu berhasil diperbarui', 'data' => $role]);
+        } catch (\Exception $e) {
+            // Rollback transaksi jika terjadi kesalahan
+            DB::rollback();
+
+            return response()->json(['message' => 'Gagal memperbarui role menu', 'error' => $e->getMessage()], 500);
         }
     }
 

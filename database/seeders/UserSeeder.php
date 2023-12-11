@@ -31,20 +31,25 @@ class UserSeeder extends Seeder
             $role = Role::where('name', $roleName)->first();
 
             if ($role) {
-                $user = new User([
-                    'user_name' => $userName,
-                    'email' => $userName . '@gmail.com',
-                    'password' => bcrypt('secret1234'), // Ganti dengan kata sandi yang sesuai
-                ]);
+                $user = User::where('email', $userName . '@gmail.com')->first();
 
-                $user->save();
+                if (!$user) {
+                    $user = new User([
+                        'user_name' => $userName,
+                        'email' => $userName . '@gmail.com',
+                        'password' => bcrypt('secret1234'), // Ganti dengan kata sandi yang sesuai
+                    ]);
+
+                    $user->save();
+                }
+
                 $user->assignRole($role);
-            }
-            if ($roleName === 'super admin') {
-                $existingUser = User::where('email', 'mirda@gmail.com')->first();
-                if (!$existingUser) {
+
+                if ($roleName === 'super admin') {
+                    // No need to create a new $user object, use the existing one
                     $user->user_name = 'mirda_yanuar';
                     $user->email = 'mirda@gmail.com';
+                    $user->save();
                 }
             }
         }

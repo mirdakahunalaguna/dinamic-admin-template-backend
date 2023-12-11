@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\MeController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\RoleController;
+use App\Http\Controllers\RolePermission\RoleController;
+use App\Http\Controllers\RolePermission\PermissionsController;
 use App\Http\Controllers\RolePermission\RolePermissionController;
 use App\Http\Controllers\Presensi\AbsensiController;
 use App\Http\Controllers\Presensi\IjinKehadiranController;
@@ -17,17 +18,17 @@ Route::post('register', [AuthController::class, 'register']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
-        Route::get('me', [MeController::class, 'index']);
-        Route::get('logout', [AuthController::class, 'logout']);
-        Route::get('user', [AuthController::class, 'profile']);
+    Route::get('me', [MeController::class, 'index']);
+    Route::get('logout', [AuthController::class, 'logout']);
+    Route::get('profile', [AuthController::class, 'profile']);
 
-        Route::prefix('menu')->group(function () {
-                Route::get('', [MenuController::class, 'index']);
-            });
-
-        Route::prefix('submenu')->group(function () {
-            Route::get('', [SubmenuController::class, 'index']);
+    Route::prefix('menus')->group(function () {
+            Route::get('', [MenuController::class, 'index']);
         });
+
+    Route::prefix('submenu')->group(function () {
+        Route::get('', [SubmenuController::class, 'index']);
+    });
 
     Route::middleware(['role:Manajer Sumber Daya Manusia'])->group(function () {
         Route::apiResource('users', UserController::class);
@@ -74,7 +75,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
                 Route::put('menu-role/{id}', [MenuController::class, 'editMenuRole']);
                 Route::delete('menu-role/{id}', [MenuController::class, 'deleteMenuRole']);
                 Route::post('get-menu-role', [MenuController::class, 'getMenuRoles']);
+                Route::post('get-role-menu', [MenuController::class, 'getRoleMenus']);
                 Route::post('set-menu-role', [MenuController::class, 'setMenuRoles']);
+                Route::post('set-role-menu', [MenuController::class, 'setRoleMenus']);
             });
         //SUPER ADMIN DAPAT MANIPULASI DATA SUBMENU
         Route::prefix('submenu')->group(function () {
@@ -91,6 +94,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('{id}', [RoleController::class, 'show']);
             Route::put('{id}', [RoleController::class, 'update']);
             Route::delete('{id}', [RoleController::class, 'destroy']);
+        });
+
+        Route::prefix('permissions')->group(function () {
+            Route::get('', [PermissionsController::class, 'index']);
+            Route::post('', [PermissionsController::class, 'store']);
+            Route::get('{id}', [PermissionsController::class, 'show']);
+            Route::put('{id}', [PermissionsController::class, 'update']);
+            Route::delete('{id}', [PermissionsController::class, 'destroy']);
         });
 
         Route::prefix('role-permission')->group(function () {

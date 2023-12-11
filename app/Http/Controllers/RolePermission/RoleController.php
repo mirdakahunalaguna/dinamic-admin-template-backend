@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\RolePermission;
 
+use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,13 +22,58 @@ class RoleController extends Controller
         }
 
         // Menggunakan parameter pengurutan untuk mengatur kueri pengurutan
-        $roles = Role::orderBy('created_at', $sortDirection)->get();
-        // return view('role.index', compact('roles'));
+        $query = Role::orderBy('created_at');
 
-        return response()->json(['message' => 'Data roles berhasil ditemukan', 'data' => $roles]);
+        // Membaca parameter pencarian dari permintaan HTTP
+        $searchKeyword = $request->input('search');
+        // Jika ada kata kunci pencarian, tambahkan kondisi pencarian ke kueri
+        if ($searchKeyword) {
+            $query->where('name', 'LIKE', "%$searchKeyword%");
+        }
+
+        $length = $request->input('length');
+        if (!is_numeric($length) || $length <= 0) {
+            return response()->json(['message' => 'Invalid length parameter'], 400);
+        }
+
+        $roles = $query->paginate($length);
+        $draw = $request->input('draw');
+        // return response()->json(['message' => 'Data roles berhasil ditemukan', 'data' => $roles]);
+        return response()->json(['draw' => $draw, 'message' => 'Data role berhasil ditemukan', 'data' => $roles]);
     }
+    public function update(Request $request, $id)
+    {
+        try {
+            // Cari objek role berdasarkan ID
+            $role = Role::find($id);
 
+            if (!$role) {
+                return response()->json(['message' => 'Data role tidak ditemukan'], 404);
+            }
 
+            // Validasi input dari request
+            $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
+
+            // Memulai transaksi database
+            DB::beginTransaction();
+
+            // Update data role
+            $role->name = $request->input('name');
+            $role->save();
+
+            // Commit transaksi jika semuanya berhasil
+            DB::commit();
+
+            return response()->json(['message' => 'Data role berhasil diperbarui', 'data' => $role]);
+        } catch (\Exception $e) {
+            // Rollback transaksi jika terjadi kesalahan
+            DB::rollback();
+
+            return response()->json(['message' => 'Gagal memperbarui data role', 'error' => $e->getMessage()], 500);
+        }
+    }
     /**
      * Show the form for creating a new resource.
      */
@@ -43,19 +89,26 @@ class RoleController extends Controller
      */
     public function store(Request $request)
     {
-        try{
+        try {
+            // Start a database transaction
+            DB::beginTransaction();
+
             $request->validate([
                 'name' => 'required',
-                'permission' => 'required'
+                // 'permission' => 'required',
             ]);
 
-            $role = Role::create(['name' => $request->name, 'guard_name'=> 'web']);
+            $role = Role::create(['name' => $request->name, 'guard_name' => 'web']);
 
-            $role->syncPermissions($request->permission);
+            // Commit the transaction
+            DB::commit();
 
-            return $this->sendResponse(null, 'Successfully', 200);
-        }catch(Exception $e){
-            return $this->sendError(null, 'Error '. $e->getMessage(), 422);
+            return $this->sendResponse($role, 'Role created successfully', 200);
+        } catch (Exception $e) {
+            // Rollback the transaction in case of an exception
+            DB::rollback();
+
+            return $this->sendError(null, 'Error: ' . $e->getMessage(), 422);
         }
     }
 
@@ -94,27 +147,6 @@ class RoleController extends Controller
 
         return $this->sendResponse($data, 'Success', 200);
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        $request->validate([
-            'name' => 'required',
-            'permission' => 'required'
-        ]);
-
-        $role = Role::find($id);
-        $role->name = $request->name;
-        $role->save();
-
-        $role->syncPermissions($request->permission);
-
-        return $this->sendResponse(null, 'Successfully', 200);
-
-    }
-
     /**
      * Remove the specified resource from storage.
      */
