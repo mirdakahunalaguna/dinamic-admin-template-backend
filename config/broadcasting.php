@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('BROADCAST_DRIVER', 'null'),
+    'default' => env('BROADCAST_DRIVER', 'redis'),
 
     /*
     |--------------------------------------------------------------------------
@@ -29,7 +29,10 @@ return [
     */
 
     'connections' => [
-
+        'redis' => [
+            'driver' => 'redis',
+            'connection' => 'default', // Nama koneksi Redis yang akan digunakan
+        ],
         'pusher' => [
             'driver' => 'pusher',
             'key' => env('PUSHER_APP_KEY'),

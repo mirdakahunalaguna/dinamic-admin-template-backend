@@ -8,30 +8,42 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Cache;
 class AuthController extends Controller
 {
-
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|min:8',
+            'email'     => 'required|email',
+            'password'  => 'required|min:8',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 202);
-        } else if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            $user = Auth::user();
-            $token = $user->createToken('mirdApp')->plainTextToken; // Menggunakan metode createToken dari objek pengguna
-
-            return response()->json([
-                'data' => $user,
-                'token' => $token,
-                'status' => 200,
-            ]);
         } else {
-            return response()->json(['error' => 'Wrong username or password'], 203);
+            // Attempt to retrieve user data from cache based on the email
+            $user = Cache::remember('user_' . $request->email, 60, function () use ($request) {
+                // Check if the user is authenticated
+                if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+                    return Auth::user();
+                }
+
+                return null;
+            });
+
+            if ($user) {
+                // User data found in cache, generate and return the token
+                $response = $user->createToken('mirdApp')->plainTextToken;
+
+                return response()->json([
+                    'data'   => $user,
+                    'token'  => $response,
+                    'status' => 200,
+                ]);
+            } else {
+                // User data not found in cache or authentication failed
+                return response()->json(['error' => 'Wrong username or password'], 203);
+            }
         }
     }
 
@@ -78,7 +90,8 @@ class AuthController extends Controller
         }
     }
 
- public function profile(Request $request) {
+ public function profile(Request $request)
+{
     // Memeriksa apakah pengguna sudah masuk
     $user = $request->user();
 
@@ -86,21 +99,30 @@ class AuthController extends Controller
         return response()->json(['error' => 'Unauthenticated']);
     }
 
-    // Mengambil data pengguna yang sedang masuk beserta data Pegawai (jika ada)
-    $userWithPegawai = User::with('pegawai')->find($user->id);
+    // Attempt to retrieve user data from cache
+    $userData = Cache::remember('user_' . $user->id, 3600, function () use ($user) {
+        // Mengambil data pengguna yang sedang masuk beserta data Pegawai (jika ada)
+        $userWithPegawai = User::with('pegawai')->find($user->id);
 
-    if ($userWithPegawai->pegawai) {
-        // Pengguna memiliki relasi dengan Pegawai, buat respons sesuai kebutuhan
-        return response()->json([
-            'user_name' => $userWithPegawai->user_name,
-            'email' => $userWithPegawai->email,
-            'nama' => $userWithPegawai->pegawai->nama,
-            'nip' => $userWithPegawai->pegawai->nip,
-        ], 200);
+        return $userWithPegawai;
+    });
+
+    if ($userData) {
+        if ($userData->pegawai) {
+            // Pengguna memiliki relasi dengan Pegawai, buat respons sesuai kebutuhan
+            return response()->json([
+                'user_name' => $userData->user_name,
+                'email' => $userData->email,
+                'nama' => $userData->pegawai->nama,
+                'nip' => $userData->pegawai->nip,
+            ], 200);
+        }
+        // Pengguna tidak memiliki relasi dengan Pegawai
+        return response()->json(['error' => 'Pengguna bukan Pegawai']);
     }
 
-    // Pengguna tidak memiliki relasi dengan Pegawai
-    return response()->json(['error' => 'Pengguna bukan Pegawai']);
+    // If user data is not found, return an error response
+    return response()->json(['error' => 'User data not available'], 500);
 }
 
 
