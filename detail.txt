@@ -1,0 +1,2 @@
+- memakai wampp
+- memakai redis
